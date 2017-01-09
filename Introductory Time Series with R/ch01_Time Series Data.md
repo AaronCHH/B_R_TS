@@ -16,6 +16,8 @@ data(AirPassengers)
 AP <- AirPassengers
 AP
 ```
+```{r}
+```
 ### 1.4.2_Unemployment: Maine 21
 ### 1.4.3_Multiple time series: Electricity, beer and chocolate data 24
 ### 1.4.4_Quarterly exchange rate: GBP to NZ dollar 28
