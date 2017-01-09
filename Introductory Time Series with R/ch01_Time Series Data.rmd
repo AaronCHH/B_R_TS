@@ -187,6 +187,14 @@ plot(New.series); abline(reg=lm(New.series ~ New.time))
 ### 1.5.4 Smoothing 35
 
 ### 1.5.5 Decomposition in R 36
+```{r}
+plot(decompose(Elec.ts))
+Elec.decom <- decompose(Elec.ts, type = "mult")
+plot(Elec.decom)
+Trend <- Elec.decom$trend
+Seasonal <- Elec.decom$seasonal
+ts.plot(cbind(Trend, Trend * Seasonal), lty = 1:2)
+```
 
 ## 1.6_Summary of commands used in examples 38
 
