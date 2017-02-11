@@ -1,0 +1,3 @@
+spectrum,returns the spectrum
+spec.pgam,returns the spectrum with more control of parameters
+fft,returns the DFT

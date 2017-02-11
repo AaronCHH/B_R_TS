@@ -1,0 +1,70 @@
+---
+title: "8. Long-Memory Processes"
+output: html_notebook
+--- 
+# 8. Long-Memory Processes
+## 8.1 Purpose
+
+## 8.2 Fractional differencing
+```{r}
+cf <- rep(0,40)
+d <- 0.45
+cf[1] <- -d
+for (i in 1:39) cf[i+1] <- -cf[i] * (d-i) / (i+1)
+```
+
+## 8.3 Fitting to simulated data
+```{r}
+library(fracdiff)
+set.seed(1)
+fds.sim <- fracdiff.sim(10000, ar = 0.9, d = 0.4)
+x <- fds.sim$series
+fds.fit <- fracdiff(x, nar = 1)
+```
+```{r}
+n <- length(x)
+L <- 30
+d <- fds.fit$d
+fdc <- d
+fdc[1] <- fdc
+
+for (k in 2:L) fdc[k] <- fdc[k-1] * (d+1-k) / k
+
+y <- rep(0, L)
+
+for (i in (L+1):n) {
+  csm <- x[i]
+  for (j in 1:L) csm <- csm + ((-1)^j) * fdc[j] * x[i-j]
+  y[i] <- csm
+}
+
+y <- y[(L+1):n]
+z.ar <- ar(y)
+ns <- 1 + z.ar$order
+z <- z.ar$res [ns:length(y)]
+par(mfcol = c(2, 2))
+plot(as.ts(x), ylab = "x")
+acf(x) ; acf(y) ; acf(z)
+```
+```{r}
+summary(fds.fit)
+```
+```{r}
+ar(y)
+```
+## 8.4 Assessing evidence of long-term dependence
+
+### 8.4.1 Nile minima
+
+### 8.4.2 Bellcore Ethernet data
+
+### 8.4.3 Bank loan rate
+
+## 8.5 Simulation
+
+## 8.6 Summary of additional commands used
+| fracdiff     | "fits a fractionally differenced  FARIMA(p, d, q) model  |
+|--------------|----------------------------------------------------------|
+| fracdiff.sim | simulates a FARIMA model                                 |
+
+## 8.7 Exercises

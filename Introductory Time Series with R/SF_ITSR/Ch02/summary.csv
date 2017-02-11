@@ -1,0 +1,6 @@
+mean,returns the mean (average)
+var,returns the variance with denominator n ? 1
+sd,returns the standard deviation
+cov,returns the covariance with denominator n ? 1
+cor,returns the correlation
+acf,returns the correlogram (or sets the argument to obtain autocovariance function)

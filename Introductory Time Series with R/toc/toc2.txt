@@ -1,0 +1,259 @@
+﻿
+# Time Series Data
+## Purpose
+## Time series
+## R language
+## Plots, trends, and seasonal variation
+### A flying start: Air passenger bookings
+### Unemployment: Maine
+### Multiple time series: Electricity, beer and chocolate data
+### Quarterly exchange rate: GBP to NZ dollar
+### Global temperature series
+## Decomposition of series
+### Notation
+### Models
+### Estimating trends and seasonal effects
+### Smoothing
+### Decomposition in R
+## Summary of commands used in examples
+## Exercises
+
+ # Correlation
+ ## Purpose
+ ## Expectation and the ensemble
+ ### Expected value
+ ### The ensemble and stationarity
+ ### Ergodic series
+ ### Variance function
+ ### Autocorrelation
+ ## The correlogram
+ ### General discussion
+ ### Example based on air passenger series
+ ### Example based on the Font Reservoir series
+ ## Covariance of sums of random variables
+ ## Summary of commands used in examples
+ ## Exercises
+
+ # Forecasting Strategies
+ ## Purpose
+ ## Leading variables and associated variables
+ ### Marine coatings
+ ### Building approvals publication
+ ### Gas supply
+ ## Bass model
+ ### Background
+ ### Model definition
+ ### Interpretation of the Bass model
+ ### Example
+ ## Exponential smoothing and the Holt-Winters method
+ ### Exponential smoothing
+ ### Holt-Winters method
+ ### Four-year-ahead forecasts for the air passenger data
+ ## Summary of commands used in examples
+ ## Exercises
+
+ # Basic Stochastic Models
+ ## Purpose
+ ## White noise
+ ### Introduction
+ ### Definition
+ ### Simulation in R
+ ### Second-order properties and the correlogram
+ ### Fitting a white noise model
+ ## Random walks
+ ### Introduction
+ ### Definition
+ ### The backward shift operator
+ ### Random walk: Second-order properties
+ ### Derivation of second-order properties
+ ### The difference operator
+ ### Simulation
+ ## Fitted models and diagnostic plots
+ ### Simulated random walk series
+ ### Exchange rate series
+ ### Random walk with drift
+ ## Autoregressive models
+ ### Definition
+ ### Stationary and non-stationary AR processes
+ ### Second-order properties of an AR(1) model
+ ### Derivation of second-order properties for an AR(1) process
+ ### Correlogram of an AR(1) process
+ ### Partial autocorrelation
+ ### Simulation
+ ## Fitted models
+ ### Model fitted to simulated series
+ ### Exchange rate series: Fitted AR model
+ ### Global temperature series: Fitted AR model
+ ## Summary of R commands
+ ## Exercises
+
+ # Regression
+ ## Purpose
+ ## Linear models
+ ### Definition
+ ### Stationarity
+ ### Simulation
+ ## Fitted models
+ ### Model fitted to simulated data
+ ### Model fitted to the temperature series (1970--2005
+ ### Autocorrelation and the estimation of sample statistics
+ ## Generalised least squares
+ ### GLS fit to simulated series
+ ### Confidence interval for the trend in the temperature series
+ ## Linear models with seasonal variables
+ ### Introduction
+ ### Additive seasonal indicator variables
+ ### Example: Seasonal model for the temperature series
+ ## Harmonic seasonal models
+ ### Simulation
+ ### Fit to simulated series
+ ### Harmonic model fitted to temperature series (1970--2005
+ ## Logarithmic transformations
+ ### Introduction
+ ### Example using the air passenger series
+ ## Non-linear models
+ ### Introduction
+ ### Example of a simulated and fitted non-linear series
+ ## Forecasting from regression
+ ### Introduction
+ ### Prediction in R
+ ## Inverse transform and bias correction
+ ### Log-normal residual errors
+ ### Empirical correction factor for forecasting means
+ ### Example using the air passenger data
+ ## Summary of R commands
+ ## Exercises
+
+ # Stationary Models
+ ## Purpose
+ ## Strictly stationary series
+ ## Moving average models
+ ### MA(q) process: Definition and properties
+ ### R examples: Correlogram and simulation
+ ## Fitted MA models
+ ### Model fitted to simulated series
+ ### Exchange rate series: Fitted MA model
+ ## Mixed models: The ARMA process
+ ### Definition
+ ### Derivation of second-order properties
+ ## ARMA models: Empirical analysis
+ ### Simulation and fitting
+ ### Exchange rate series
+ ### Electricity production series
+ ### Wave tank data
+ ## Summary of R commands
+ ## Exercises
+
+ # Non-stationary Models
+ ## Purpose
+ ## Non-seasonal ARIMA models
+ ### Differencing and the electricity series
+ ### Integrated model
+ ### Definition and examples
+ ### Simulation and fitting
+ ### IMA(1, 1) model fitted to the beer production series
+ ## Seasonal ARIMA models
+ ### Definition
+ ### Fitting procedure
+ ## ARCH models
+ ### S&P500 series
+ ### Modelling volatility: Definition of the ARCH model
+ ### Extensions and GARCH models
+ ### Simulation and fitted GARCH model
+ ### Fit to S&P500 series
+ ### Volatility in climate series
+ ### GARCH in forecasts and simulations
+ ## Summary of R commands
+ ## Exercises
+
+ # Long-Memory Processes
+ ## Purpose
+ ## Fractional differencing
+ ## Fitting to simulated data
+ ## Assessing evidence of long-term dependence
+ ### Nile minima
+ ### Bellcore Ethernet data
+ ### Bank loan rate
+ ## Simulation
+ ## Summary of additional commands used
+ ## Exercises
+
+ # Spectral Analysis
+ ## Purpose
+ ## Periodic signals
+ ### Sine waves
+ ### Unit of measurement of frequency
+ ## Spectrum
+ ### Fitting sine waves
+ ### Sample spectrum
+ ## Spectra of simulated series
+ ### White noise
+ ### AR(1): Positive coefficient
+ ### AR(1): Negative coefficient
+ ### AR(2
+ ## Sampling interval and record length
+ ### Nyquist frequency
+ ### Record length
+ ## Applications
+ ### Wave tank data
+ ### Fault detection on electric motors
+ ### Measurement of vibration dose
+ ### Climatic indices
+ ### Bank loan rate
+ ## Discrete Fourier transform (DFT
+ ## The spectrum of a random process
+ ### Discrete white noise
+ ### AR
+ ### Derivation of spectrum
+ ## Autoregressive spectrum estimation
+ ## Finer details
+ ### Leakage
+ ### Confidence intervals
+ ### Daniell windows
+ ### Padding
+ ### Tapering
+ ### Spectral analysis compared with wavelets
+ ## Summary of additional commands used
+ ## Exercises
+
+ # System Identification
+ ## Purpose
+ ## Identifying the gain of a linear system
+ ### Linear system
+ ### Natural frequencies
+ ### Estimator of the gain function
+ ## Spectrum of an AR(p) process
+ ## Simulated single mode of vibration system
+ ## Ocean-going tugboat
+ ## Non-linearity
+ ## Exercises
+
+ # Multivariate Models
+ ## Purpose
+ ## Spurious regression
+ ## Tests for unit roots
+ ## Cointegration
+ ### Definition
+ ### Exchange rate series
+ ## Bivariate and multivariate white noise
+ ## Vector autoregressive models
+ ### VAR model fitted to US economic series
+ ## Summary of R commands
+ ## Exercises
+
+ # State Space Models
+ ## Purpose
+ ## Linear state space models
+ ### Dynamic linear model
+ ### Filtering
+ ### Prediction
+ ### Smoothing
+ ## Fitting to simulated univariate time series
+ ### Random walk plus noise model
+ ### Regression model with time-varying coefficients
+ ## Fitting to univariate time series
+ ## Bivariate time series -- river salinity
+ ## Estimating the variance matrices
+ ## Discussion
+ ## Summary of additional commands used
+ ## Exercises

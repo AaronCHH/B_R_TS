@@ -1,0 +1,6 @@
+lm,fits a linear (regression) model
+coef,extracts the parameter estimates from a fitted model
+confint,returns a (95%) confidence interval for the parameters of a fitted model
+gls,fits a linear model using generalised least squares (allowing for autocorrelated residuals)
+factor,returns variables in the form of ¡¥factors¡¦ or indicator variables
+,

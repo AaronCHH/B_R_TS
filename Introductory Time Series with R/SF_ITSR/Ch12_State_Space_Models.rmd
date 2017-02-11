@@ -1,0 +1,159 @@
+---
+title: "12. State Space Models"
+output: html_notebook
+--- 
+<!-- TOC -->
+
+- [12. State Space Models](#12-state-space-models)
+  - [12.1 Purpose](#121-purpose)
+  - [12.2 Linear state space models](#122-linear-state-space-models)
+    - [12.2.1 Dynamic linear model](#1221-dynamic-linear-model)
+    - [12.2.2 Filtering](#1222-filtering)
+    - [12.2.3 Prediction](#1223-prediction)
+    - [12.2.4 Smoothing](#1224-smoothing)
+  - [12.3 Fitting to simulated univariate time series](#123-fitting-to-simulated-univariate-time-series)
+    - [12.3.1 Random walk plus noise model](#1231-random-walk-plus-noise-model)
+    - [12.3.2 Regression model with time-varying coefficients](#1232-regression-model-with-time-varying-coefficients)
+  - [12.4 Fitting to univariate time series](#124-fitting-to-univariate-time-series)
+  - [12.5 Bivariate time series -- river salinity](#125-bivariate-time-series----river-salinity)
+  - [12.6 Estimating the variance matrices](#126-estimating-the-variance-matrices)
+  - [12.7 Discussion](#127-discussion)
+  - [12.8 Summary of additional commands used](#128-summary-of-additional-commands-used)
+  - [12.9 Exercises](#129-exercises)
+
+<!-- /TOC -->
+# 12. State Space Models
+## 12.1 Purpose
+
+## 12.2 Linear state space models
+
+### 12.2.1 Dynamic linear model
+
+### 12.2.2 Filtering
+
+### 12.2.3 Prediction
+
+### 12.2.4 Smoothing
+
+## 12.3 Fitting to simulated univariate time series
+
+### 12.3.1 Random walk plus noise model
+```{r}
+library(sspir)
+set.seed(1)
+Plummet.dat <- 20 + 2*rnorm(20) + c(rep(0,10), rep(-10,10))
+n <- length(Plummet.dat)
+Plummet.mat <- matrix(Plummet.dat, nrow = n, ncol = 1)
+m1 <- SS(y = Plummet.mat,
+         Fmat = function(tt,x,phi) return( matrix(1) ),
+         Gmat = function(tt,x,phi) return( matrix(1) ),
+         Wmat = function(tt,x,phi) return( matrix(0.1)),
+         Vmat = function(tt,x,phi) return( matrix(2) ),
+         m0 = matrix(25), C0 = matrix(10)
+         )
+plot(m1$y, ylab = "Closing price", main = "Simulated")
+m1.f <- kfilter(m1)
+m1.s <- smoother(m1.f)
+lines(m1.f$m, lty = 2)
+lines(m1.s$m, lty = 3)
+```
+
+```{r}
+plot(m1$y, ylab = "Closing price", main = "Simulated")
+m1.f <- kfilter(m1)
+lines(m1.f$m, lty = 2)
+m2 <- m1
+Wmat(m2) <- function(tt, x, phi) {
+  if (tt == 12) return(matrix(10)) else return(matrix(0.1))
+}
+```
+
+### 12.3.2 Regression model with time-varying coefficients
+```{r}
+library(sspir)
+set.seed(1)
+x1 <- 1:30
+x1 <- x1/10 + 2
+a <- c(rep(4,15), rep(5,15))
+b <- c(rep(2,15), rep(-1,15))
+n <- length(x1)
+y1 <- a + b * x1 + rnorm(n)
+x0 <- rep(1, n)
+xx <- cbind(x0, x1)
+x.mat <- matrix(xx, nrow = n, ncol = 2)
+y.mat <- matrix(y1, nrow = n, ncol = 1)
+m1 <- SS(y = y.mat, x = x.mat,
+         Fmat = function(tt,x,phi)
+           return( matrix(c(x[tt,1], x[tt,2]), nrow = 2, ncol
+                          = 1)),
+         Gmat = function(tt,x,phi) return (diag(2)),
+         Wmat = function(tt, x, phi) return (0.1*diag(2)),
+         Vmat = function(tt,x,phi) return (matrix(1)),
+         m0 = matrix(c(5,3),nrow=1,ncol=2),C0=10*diag(2)
+         )
+m1.f <- kfilter(m1)
+par(mfcol=c(2,1))
+plot(m1.f$m[,1], type= ' l ' )
+plot(m1.f$m[,2], type= ' l ' )
+```
+
+
+## 12.4 Fitting to univariate time series
+
+## 12.5 Bivariate time series -- river salinity
+```{r}
+library(sspir)
+www <- ' http://www.massey.ac.nz/~pscowper/ts/Murray.txt '
+Salt.dat <- read.table(www, header=T) ; attach(Salt.dat)
+n <- 81 ; Time <- 1:n
+SIN <- sin(2 * pi * Time /12)[-1]
+COS <- cos(2 * pi * Time /12)[-1]
+Chowilla <- Chowilla - mean(Chowilla)
+Flow <- Flow - mean(Flow)
+Chow <- Chowilla[-1]
+Chow.L1 <- Chowilla[-n]
+Flo <- Flow[-1]
+Flo.L1 <- Flow[-n]
+Sal.mat <- matrix(c(Chow, Flo), nrow = 80, ncol = 2)
+x0 <- rep(1, (n-1))
+xx <- cbind(x0, Chow.L1, Flo.L1, COS, SIN)
+x.mat <- matrix(xx, nrow = n-1, ncol = 5)
+G.mat <- diag(10)
+W.mat <- diag(rep(c(10, 0.0001, 0.0001, 0.0001, 0.0001), 2))
+m1 <- SS(y = Sal.mat, x = x.mat,
+         Fmat = function(tt, x, phi) return (matrix(
+           c(x[tt,1], x[tt,2], x[tt,3], x[tt,4], x[tt,5],
+             rep(0,10),
+             x[tt,1], x[tt,2], x[tt,3], x[tt,4], x[tt,5]),
+           nrow=10,ncol=2)),
+         Gmat = function(tt, x, phi) return (G.mat),
+         Wmat = function(tt, x, phi) return (W.mat),
+         Vmat = function(tt, x, phi) return
+         (matrix(c(839, -348, -348, 1612), nrow=2, ncol=2)),
+         m0=matrix(c(0,0.9,0.1,-15,-10,0,0,0.7,30,20),nrow=1,ncol=10),
+         C0 = 100 * W.mat
+         )
+m1.f <- kfilter (m1)
+par(mfcol=c(2,3))
+plot(m1.f$m[,1], type= 'l' )
+plot(m1.f$m[,2], type= 'l' )
+plot(m1.f$m[,3], type= 'l' )
+plot(m1.f$m[,6], type= 'l' )
+plot(m1.f$m[,7], type= 'l' )
+plot(m1.f$m[,8], type= 'l' )
+par(mfcol=c(2,2))
+plot(m1.f$m[,4], type= 'l' )
+plot(m1.f$m[,5], type= 'l' )
+plot(m1.f$m[,9], type= 'l' )
+plot(m1.f$m[,10], type= 'l' )
+```
+
+
+## 12.6 Estimating the variance matrices
+
+## 12.7 Discussion
+
+## 12.8 Summary of additional commands used
+
+## 12.9 Exercises
+

@@ -1,0 +1,163 @@
+---
+title: "11. Multivariate Models"
+output: html_notebook
+--- 
+<!-- TOC -->
+
+- [11. Multivariate Models](#11-multivariate-models)
+  - [11.1 Purpose](#111-purpose)
+  - [11.2 Spurious regression](#112-spurious-regression)
+  - [11.3 Tests for unit roots](#113-tests-for-unit-roots)
+  - [11.4 Cointegration](#114-cointegration)
+    - [11.4.1 Definition](#1141-definition)
+    - [11.4.2 Exchange rate series](#1142-exchange-rate-series)
+  - [11.5 Bivariate and multivariate white noise](#115-bivariate-and-multivariate-white-noise)
+  - [11.6 Vector autoregressive models](#116-vector-autoregressive-models)
+    - [11.6.1 VAR model fitted to US economic series](#1161-var-model-fitted-to-us-economic-series)
+  - [11.7 Summary of R commands](#117-summary-of-r-commands)
+  - [11.8 Exercises](#118-exercises)
+
+<!-- /TOC -->
+# 11. Multivariate Models
+
+## 11.1 Purpose
+
+## 11.2 Spurious regression
+```{r}
+www <- "Ch11/cbe.dat"
+CBE <- read.table(www, header = T)
+Elec.ts <- ts(CBE[, 3], start = 1958, freq = 12)
+Choc.ts <- ts(CBE[, 1], start = 1958, freq = 12)
+plot(as.vector(aggregate(Choc.ts)), as.vector(aggregate(Elec.ts)))
+cor(aggregate(Choc.ts), aggregate(Elec.ts))
+```
+
+```{r}
+set.seed(10); x <- rnorm(100); y <- rnorm(100)
+for(i in 2:100) {
+  x[i] <- x[i-1] + rnorm(1)
+  y[i] <- y[i-1] + rnorm(1) 
+  }
+plot(x, y)
+cor(x, y)
+```
+
+
+```{r}
+www <- "Ch11/us_rates.dat"
+xrates <- read.table(www, header = T)
+xrates[1:3, ]
+acf( diff(xrates$UK) )
+acf( diff(xrates$EU) )
+plot(xrates$UK, xrates$EU, pch = 4)
+cor(xrates$UK, xrates$EU)
+0.946
+```
+
+## 11.3 Tests for unit roots
+```{r}
+library(tseries)
+adf.test(x)
+```
+
+```{r}
+pp.test(xrates$UK)
+```
+```{r}
+pp.test(xrates$EU)
+```
+
+## 11.4 Cointegration
+
+### 11.4.1 Definition
+```{r}
+x <- y <- mu <- rep(0, 1000)
+for (i in 2:1000) mu[i] <- mu[i - 1] + rnorm(1)
+x <- mu + rnorm(1000)
+y <- mu + rnorm(1000)
+adf.test(x)$p.value
+adf.test(y)$p.value
+po.test(cbind(x, y))
+```
+### 11.4.2 Exchange rate series
+```{r}
+po.test(cbind(xrates$UK, xrates$EU))
+ukeu.lm <- lm(xrates$UK ~ xrates$EU)
+ukeu.res <- resid(ukeu.lm)
+ukeu.res.ar <- ar(ukeu.res)
+ukeu.res.ar$order
+AIC(arima(ukeu.res, order = c(3, 0, 0)))
+AIC(arima(ukeu.res, order = c(2, 0, 0)))
+AIC(arima(ukeu.res, order = c(1, 0, 0)))
+AIC(arima(ukeu.res, order = c(1, 1, 0)))
+```
+
+## 11.5 Bivariate and multivariate white noise
+```{r}
+library(mvtnorm)
+cov.mat <- matrix(c(1, 0.8, 0.8, 1), nr = 2)
+w <- rmvnorm(1000, sigma = cov.mat)
+cov(w)
+wx <- w[, 1]
+wy <- w[, 2]
+ccf(wx, wy, main = "")
+```
+
+
+## 11.6 Vector autoregressive models
+```{r}
+Mod(polyroot(c(1, -0.5, -0.02)))
+x <- y <- rep(0, 1000)
+x[1] <- wx[1]
+y[1] <- wy[1]
+for (i in 2:1000) {
+  x[i] <- 0.4 * x[i - 1] + 0.3 * y[i - 1] + wx[i]
+  y[i] <- 0.2 * x[i - 1] + 0.1 * y[i - 1] + wy[i]
+}
+xy.ar <- ar(cbind(x, y))
+xy.ar$ar[, , ]
+```
+
+### 11.6.1 VAR model fitted to US economic series
+
+```{r}
+library(tseries)
+data(USeconomic)
+US.ar <- ar(cbind(GNP, M1), method="ols", dmean=T, intercept=F)
+US.ar$ar
+```
+```{r}
+acf(US.ar$res[-c(1:3), 1])
+acf(US.ar$res[-c(1:3), 2])
+```
+```{r}
+US.var <- VAR(cbind(GNP, M1), p = 2, type = "trend")
+coef(US.var)
+```
+```{r}
+acf(resid(US.var)[, 1])
+acf(resid(US.var)[, 2])
+```
+```{r}
+US.pred <- predict(US.var, n.ahead = 4)
+US.pred
+```
+
+```{r}
+GNP.pred <- ts(US.pred$fcst$GNP[, 1], st = 1988, fr = 4)
+M1.pred <- ts(US.pred$fcst$M1[, 1], st = 1988, fr = 4)
+ts.plot(cbind(window(GNP, start = 1981), GNP.pred), lty = 1:2)
+ts.plot(cbind(window(M1, start = 1981), M1.pred), lty = 1:2)
+```
+
+
+## 11.7 Summary of R commands
+| adf.test | Dickey-Fuller test for unit roots                                 |
+|----------|-------------------------------------------------------------------|
+| pp.test  | Phillips-Perron test for unit roots                               |
+| rmvnorm  | multivariate white noise simulation                               |
+| po.test  | Phillips-Ouliaris cointegration test                              |
+| ar       | Fits the VAR model based on the smallest AIC                      |
+| VAR      | Fits the VAR model based on least squares (vars package required) |
+
+## 11.8 Exercises

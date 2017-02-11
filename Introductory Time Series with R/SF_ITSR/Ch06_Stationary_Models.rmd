@@ -1,0 +1,188 @@
+---
+title: "6. Stationary Models"
+output: html_notebook
+---
+<!-- TOC -->
+
+- [6. Stationary Models](#6-stationary-models)
+  - [6.1 Purpose](#61-purpose)
+  - [6.2 Strictly stationary series](#62-strictly-stationary-series)
+  - [6.3 Moving average models](#63-moving-average-models)
+    - [6.3.1 MA(q) process: Definition and properties](#631-maq-process-definition-and-properties)
+    - [6.3.2 R examples: Correlogram and simulation](#632-r-examples-correlogram-and-simulation)
+  - [6.4 Fitted MA models](#64-fitted-ma-models)
+    - [6.4.1 Model fitted to simulated series](#641-model-fitted-to-simulated-series)
+    - [6.4.2 Exchange rate series: Fitted MA model](#642-exchange-rate-series-fitted-ma-model)
+  - [6.5 Mixed models: The ARMA process](#65-mixed-models-the-arma-process)
+    - [6.5.1 Definition](#651-definition)
+    - [6.5.2 Derivation of second-order properties](#652-derivation-of-second-order-properties)
+  - [6.6 ARMA models: Empirical analysis](#66-arma-models-empirical-analysis)
+    - [6.6.1 Simulation and fitting](#661-simulation-and-fitting)
+    - [6.6.2 Exchange rate series](#662-exchange-rate-series)
+    - [6.6.3 Electricity production series](#663-electricity-production-series)
+    - [6.6.4 Wave tank data](#664-wave-tank-data)
+  - [6.7 Summary of R commands](#67-summary-of-r-commands)
+  - [6.8 Exercises](#68-exercises)
+
+<!-- /TOC -->
+
+# 6. Stationary Models
+## 6.1 Purpose
+
+## 6.2 Strictly stationary series
+
+## 6.3 Moving average models
+
+### 6.3.1 MA(q) process: Definition and properties
+
+### 6.3.2 R examples: Correlogram and simulation
+```{r}
+rho <- function(k, beta) {
+q <- length(beta) - 1
+if (k > q) ACF <- 0 else {
+  s1 <- 0; s2 <- 0
+  for (i in 1:(q-k+1)) s1 <- s1 + beta[i] * beta[i+k]
+  for (i in 1:(q+1)) s2 <- s2 + beta[i]^2
+  ACF <- s1 / s2}
+ACF}
+```
+
+```{r}
+beta <- c(1, 0.7, 0.5, 0.2)
+rho.k <- rep(1, 10)
+for (k in 1:10) rho.k[k] <- rho(k, beta)
+plot(0:10, c(1, rho.k), pch = 4, ylab = expression(rho[k]))
+abline(0, 0)
+```
+
+
+```{r}
+set.seed(1)
+b <- c(0.8, 0.6, 0.4)
+x <- w <- rnorm(1000)
+for (t in 4:1000) {
+for (j in 1:3) x[t] <- x[t] + b[j] * w[t - j]}
+plot(x, type = "l")
+acf(x)
+```
+
+## 6.4 Fitted MA models
+
+### 6.4.1 Model fitted to simulated series
+```{r}
+x.ma <- arima(x, order = c(0, 0, 3))
+x.ma
+```
+
+
+
+### 6.4.2 Exchange rate series: Fitted MA model
+```{r}
+www <- "Ch06/pounds_nz.dat"
+x <- read.table(www, header = T)
+x.ts <- ts(x, st = 1991, fr = 4)
+x.ma <- arima(x.ts, order = c(0, 0, 1))
+x.ma
+```
+
+```{r}
+acf(x.ma$res[-1])
+```
+
+
+## 6.5 Mixed models: The ARMA process
+
+### 6.5.1 Definition
+
+### 6.5.2 Derivation of second-order properties
+
+## 6.6 ARMA models: Empirical analysis
+
+### 6.6.1 Simulation and fitting
+
+```{r}
+set.seed(1)
+x <- arima.sim(n = 10000, list(ar = -0.6, ma = 0.5))
+coef(arima(x, order = c(1, 0, 1)))
+```
+### 6.6.2 Exchange rate series
+
+```{r}
+x.ma <- arima(x.ts, order = c(0, 0, 1))
+x.ar <- arima(x.ts, order = c(1, 0, 0))
+x.arma <- arima(x.ts, order = c(1, 0, 1))
+AIC(x.ma)
+AIC(x.ar)
+```
+
+```{r}
+AIC(x.arma)
+x.arma
+acf(resid(x.arma))
+```
+
+### 6.6.3 Electricity production series
+```{r}
+www <- "Ch06/cbe.dat"
+CBE <- read.table(www, header = T)
+Elec.ts <- ts(CBE[, 3], start = 1958, freq = 12)
+Time <- 1:length(Elec.ts)
+Imth <- cycle(Elec.ts)
+Elec.lm <- lm(log(Elec.ts) ~ Time + I(Time^2) + factor(Imth))
+acf(resid(Elec.lm))
+```
+
+
+```{r}
+best.order <- c(0, 0, 0)
+best.aic <- Inf
+
+for (i in 0:2) for (j in 0:2) {
+  fit.aic <- AIC(arima(resid(Elec.lm), order = c(i, 0, j)))
+  if (fit.aic < best.aic) {
+    best.order <- c(i, 0, j)
+    best.arma <- arima(resid(Elec.lm), order = best.order)
+    best.aic <- fit.aic
+  }
+}
+```
+
+```{r}
+best.order
+```
+```{r}
+acf(resid(best.arma))
+```
+```{r}
+new.time <- seq(length(Elec.ts), length = 36)
+new.data <- data.frame(Time = new.time, Imth = rep(1:12,3))
+predict.lm <- predict(Elec.lm, new.data)
+predict.arma <- predict(best.arma, n.ahead = 36)
+elec.pred <- ts(exp(predict.lm + predict.arma$pred), start = 1991, freq = 12)
+ts.plot(cbind(Elec.ts, elec.pred), lty = 1:2)
+```
+
+### 6.6.4 Wave tank data
+```{r}
+www <- "Ch06/wave.dat"
+wave.dat <- read.table(www, header = T)
+attach (wave.dat)
+layout(1:3)
+plot (as.ts(waveht), ylab = ' Wave height ' )
+acf (waveht)
+pacf (waveht)
+wave.arma <- arima(waveht, order = c(4,0,4))
+acf (wave.arma$res[-(1:4)])
+pacf (wave.arma$res[-(1:4)])
+hist(wave.arma$res[-(1:4)], xlab= ' height / mm ' , main= '' )
+```
+
+
+## 6.7 Summary of R commands
+| arima.sim  | simulates data from an ARMA (or ARIMA) process |
+|------------|------------------------------------------------|
+| arima      | fits an ARMA (or ARIMA) model to data          |
+| seq        | generates a sequence                           |
+| expression | used to plot maths symbol                      |
+
+## 6.8 Exercises

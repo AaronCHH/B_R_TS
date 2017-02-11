@@ -2,4 +2,5 @@
 /Introductory Time Series with R/*.pdf
 /Introductory Time Series with R/DATA
 /Introductory Time Series with R/DATA_ALL
-*/collect
+*/_collect
+_collect

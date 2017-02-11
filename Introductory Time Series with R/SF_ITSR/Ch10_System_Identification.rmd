@@ -1,0 +1,78 @@
+---
+title: "10. System Identification"
+output: html_notebook
+--- 
+
+<!-- TOC -->
+
+- [10. System Identification](#10-system-identification)
+  - [10.1 Purpose](#101-purpose)
+  - [10.2 Identifying the gain of a linear system](#102-identifying-the-gain-of-a-linear-system)
+    - [10.2.1 Linear system](#1021-linear-system)
+    - [10.2.2 Natural frequencies](#1022-natural-frequencies)
+    - [10.2.3 Estimator of the gain function](#1023-estimator-of-the-gain-function)
+  - [10.3 Spectrum of an AR(p) process](#103-spectrum-of-an-arp-process)
+  - [10.4 Simulated single mode of vibration system](#104-simulated-single-mode-of-vibration-system)
+  - [10.5 Ocean-going tugboat](#105-ocean-going-tugboat)
+  - [10.6 Non-linearity](#106-non-linearity)
+  - [10.7 Exercises](#107-exercises)
+
+<!-- /TOC -->
+# 10. System Identification
+## 10.1 Purpose
+
+## 10.2 Identifying the gain of a linear system
+
+### 10.2.1 Linear system
+
+### 10.2.2 Natural frequencies
+
+### 10.2.3 Estimator of the gain function
+
+## 10.3 Spectrum of an AR(p) process
+
+## 10.4 Simulated single mode of vibration system
+```{r}
+m <- 1; c <- 1; k <- 16.25; Delta <- 0.01
+a0 <- m / Delta^2 + c / Delta + k
+a1 <- -2 * m / Delta^2 - c / Delta; a2 <- m / Delta^2
+n <- 100000
+y <- c(0, 0); x <- c(0, 0)
+set.seed(1)
+for (i in 3:n) {
+  x[i] <- x[i-1] - 0.5 * x[i-2] + rnorm(1)
+  y[i] <- (-a1 * y[i-1] - a2 * y[i-2]) / a0 + x[i] / a0
+}
+Sxx <- spectrum(x, span = 31)
+Syy <- spectrum(y, span = 31)
+Gemp <- sqrt( Syy$spec[1:5000] / Sxx$spec[1:5000] )
+Freq <- Syy$freq[1:5000]
+FreH <- Freq / Delta
+Omeg <- 2 * pi * Freq
+OmegH <- 2 * pi * FreH
+Gth <- sqrt( 1/( (k-m*OmegH^2)^2 + c^2*OmegH^2 ))
+Gar <- 1 / abs( 1 + a1/a0 * exp(-Omeg*1i) + a2/a0 * exp(-Omeg*2i) )
+plot(FreH, Gth, xlab = "Frequency (Hz)", ylab = "Gain", type="l")
+lines(FreH, Gemp, lty = "dashed")
+lines(FreH, Gar, lty = "dotted")
+```
+## 10.5 Ocean-going tugboat
+```{r}
+www <- "Ch10/leg4.dat"
+tug.dat <- read.table(www, header = T)
+attach(tug.dat)
+Heave.spec <- spectrum( Heave, span = sqrt( length(Heave) ),
+                        log = c("no"), main = "" )
+Wave.spec <- spectrum( Wave, span = sqrt( length(Heave) ),
+                       log = c("no"), main = "" )
+G <- sqrt(Heave.spec$spec/Wave.spec$spec)
+par(mfcol = c(2, 2))
+plot( as.ts(Wave) )
+acf(Wave)
+spectrum(Wave, span = sqrt(length(Heave)), log = c("no"), main = "")
+plot(Heave.spec$freq, G, xlab="frequency Hz", ylab="Gain", type="l")
+```
+
+## 10.6 Non-linearity
+
+## 10.7 Exercises

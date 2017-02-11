@@ -1,0 +1,12 @@
+read.table,reads data into a data frame
+attach,makes names of column variables available
+ts,produces a time series object
+aggregate,creates an aggregated series
+ts.plot,produces a time plot for one or more series
+window,extracts a subset of a time series
+time,extracts the time from a time series object
+ts.intersect,creates the intersection of one or more time series
+cycle,returns the season for each value in a series
+decompose,"decomposes a series into the components trend, seasonal effect, and residual"
+stl,decomposes a series using loess smoothing
+summary,summarises an R object

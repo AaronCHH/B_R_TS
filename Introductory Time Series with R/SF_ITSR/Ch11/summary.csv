@@ -1,0 +1,7 @@
+adf.test,Dickey-Fuller test for unit roots
+pp.test,Phillips-Perron test for unit roots
+rmvnorm,multivariate white noise simulation
+po.test,Phillips-Ouliaris cointegration test
+ar,Fits the VAR model based on the smallest AIC
+VAR,Fits the VAR model based on least squares (vars package required)
+,

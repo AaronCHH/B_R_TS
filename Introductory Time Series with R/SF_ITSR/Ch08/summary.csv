@@ -1,0 +1,2 @@
+fracdiff,"fits a fractionally differenced, FARIMA( p, d, q), model"
+fracdiff.sim,simulates a FARIMA model

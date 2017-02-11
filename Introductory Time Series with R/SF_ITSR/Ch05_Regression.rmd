@@ -1,0 +1,373 @@
+---
+title: "5. Regeression"
+output: html_notebook
+---
+<!-- TOC -->
+
+- [5. Regression](#5-regression)
+  - [5.1 Purpose](#51-purpose)
+  - [5.2 Linear models](#52-linear-models)
+    - [5.2.1 Definition](#521-definition)
+    - [5.2.2 Stationarity](#522-stationarity)
+    - [5.2.3 Simulation](#523-simulation)
+  - [5.3 Fitted models](#53-fitted-models)
+    - [5.3.1 Model fitted to simulated data](#531-model-fitted-to-simulated-data)
+    - [5.3.2 Model fitted to the temperature series (1970--2005](#532-model-fitted-to-the-temperature-series-1970--2005)
+    - [5.3.3 Autocorrelation and the estimation of sample statistics](#533-autocorrelation-and-the-estimation-of-sample-statistics)
+  - [5.4 Generalised least squares](#54-generalised-least-squares)
+    - [5.4.1 GLS fit to simulated series](#541-gls-fit-to-simulated-series)
+    - [5.4.2 Confidence interval for the trend in the temperature series](#542-confidence-interval-for-the-trend-in-the-temperature-series)
+  - [5.5 Linear models with seasonal variables](#55-linear-models-with-seasonal-variables)
+    - [5.5.1 Introduction](#551-introduction)
+    - [5.5.2 Additive seasonal indicator variables](#552-additive-seasonal-indicator-variables)
+    - [5.5.3 Example: Seasonal model for the temperature series](#553-example-seasonal-model-for-the-temperature-series)
+  - [5.6 Harmonic seasonal models](#56-harmonic-seasonal-models)
+    - [5.6.1 Simulation](#561-simulation)
+    - [5.6.2 Fit to simulated series](#562-fit-to-simulated-series)
+    - [5.6.3 Harmonic model fitted to temperature series (1970--2005](#563-harmonic-model-fitted-to-temperature-series-1970--2005)
+  - [5.7 Logarithmic transformations](#57-logarithmic-transformations)
+    - [5.7.1 Introduction](#571-introduction)
+    - [5.7.2 Example using the air passenger series](#572-example-using-the-air-passenger-series)
+  - [5.8 Non-linear models](#58-non-linear-models)
+    - [5.8.1 Introduction](#581-introduction)
+    - [5.8.2 Example of a simulated and fitted non-linear series](#582-example-of-a-simulated-and-fitted-non-linear-series)
+  - [5.9 Forecasting from regression](#59-forecasting-from-regression)
+    - [5.9.1 Introduction](#591-introduction)
+    - [5.9.2 Prediction in R](#592-prediction-in-r)
+  - [5.10 Inverse transform and bias correction](#510-inverse-transform-and-bias-correction)
+    - [5.10.1 Log-normal residual errors](#5101-log-normal-residual-errors)
+    - [5.10.2 Empirical correction factor for forecasting means](#5102-empirical-correction-factor-for-forecasting-means)
+    - [5.10.3 Example using the air passenger data](#5103-example-using-the-air-passenger-data)
+  - [5.11 Summary of R commands](#511-summary-of-r-commands)
+  - [5.12 Exercises](#512-exercises)
+
+<!-- /TOC -->
+# 5. Regression
+
+## 5.1 Purpose
+
+## 5.2 Linear models
+
+### 5.2.1 Definition
+
+### 5.2.2 Stationarity
+
+### 5.2.3 Simulation
+```{r}
+set.seed(1)
+z <- w <- rnorm(100, sd = 20)
+for (t in 2:100) z[t] <- 0.8 * z[t - 1] + w[t]
+Time <- 1:100
+x <- 50 + 3 * Time + z
+plot(x, xlab = "time", type = "l")
+```
+## 5.3 Fitted models
+
+### 5.3.1 Model fitted to simulated data
+```{r}
+x.lm <- lm(x ~ Time)
+coef(x.lm)
+```
+```{r}
+sqrt(diag(vcov(x.lm)))
+```
+```{r}
+acf(resid(x.lm))
+pacf(resid(x.lm))
+```
+
+### 5.3.2 Model fitted to the temperature series (1970--2005
+```{r}
+www <- "Ch04/global.dat"
+Global <- scan(www)
+Global.ts <- ts(Global, st = c(1856, 1), end = c(2005, 12), fr = 12)
+temp <- window(Global.ts, start = 1970)
+temp.lm <- lm(temp ~ time(temp))
+coef(temp.lm)
+```
+
+```{r}
+confint(temp.lm)
+acf(resid(lm(temp ~ time(temp))))
+```
+
+### 5.3.3 Autocorrelation and the estimation of sample statistics
+
+## 5.4 Generalised least squares
+```{r}
+library(nlme)
+x.gls <- gls(x ~ Time, cor = corAR1(0.8))
+coef(x.gls)
+sqrt(diag(vcov(x.gls)))
+```
+### 5.4.1 GLS fit to simulated series
+
+### 5.4.2 Confidence interval for the trend in the temperature series
+```{r}
+temp.gls <- gls(temp ~ time(temp), cor = corAR1(0.7))
+confint(temp.gls)
+```
+## 5.5 Linear models with seasonal variables
+
+### 5.5.1 Introduction
+
+### 5.5.2 Additive seasonal indicator variables
+
+### 5.5.3 Example: Seasonal model for the temperature series
+```{r}
+Seas <- cycle(temp)
+Time <- time(temp)
+temp.lm <- lm(temp ~ 0 + Time + factor(Seas))
+coef(temp.lm)
+```
+
+```{r}
+new.t <- seq(2006, len = 2 * 12, by = 1/12)
+alpha <- coef(temp.lm)[1]
+beta <- rep(coef(temp.lm)[2:13], 2)
+(alpha * new.t + beta)[1:4]
+```
+
+```{r}
+new.dat <- data.frame(Time = new.t, Seas = rep(1:12, 2))
+predict(temp.lm, new.dat)[1:24]
+```
+## 5.6 Harmonic seasonal models
+```{r}
+TIME <- seq(1, 12, len = 1000)
+plot(TIME, sin(2 * pi * TIME/12), type = "l")
+plot(TIME, sin(2 * pi * TIME/12) +
+       0.2 * sin(2 * pi * 2 * TIME/12) + 
+       0.1 * sin(2 * pi * 4 * TIME/12) + 
+       0.1 * cos(2 * pi * 4 * TIME/12), type = "l")
+```
+
+
+### 5.6.1 Simulation
+```{r}
+set.seed(1)
+TIME <- 1:(10 * 12)
+w <- rnorm(10 * 12, sd = 0.5)
+```
+
+```{r}
+Trend <- 0.1 + 0.005 * TIME + 0.001 * TIME^2
+Seasonal <- sin(2*pi*TIME/12) + 0.2*sin(2*pi*2*TIME/12) +
+  0.1*sin(2*pi*4*TIME/12) + 0.1*cos(2*pi*4*TIME/12)
+x <- Trend + Seasonal + w
+plot(x, type = "l")
+```
+
+### 5.6.2 Fit to simulated series
+```{r}
+SIN <- COS <- matrix(nr = length(TIME), nc = 6)
+for (i in 1:6) {
+  COS[, i] <- cos(2 * pi * i * TIME/12)
+  SIN[, i] <- sin(2 * pi * i * TIME/12)
+}
+
+x.lm1 <- lm(x ~ TIME + I(TIME^2) + COS[, 1] + SIN[, 1] +
+              COS[, 2] + SIN[, 2] + COS[, 3] + SIN[, 3] + COS[, 4] +
+              SIN[, 4] + COS[, 5] + SIN[, 5] + COS[, 6] + SIN[, 6])
+coef(x.lm1)/sqrt(diag(vcov(x.lm1)))
+```
+
+```{r}
+x.lm2 <- lm(x ~ I(TIME^2) + SIN[, 1] + SIN[, 2])
+coef(x.lm2)/sqrt(diag(vcov(x.lm2)))
+```
+
+```{r}
+coef(x.lm2)
+AIC(x.lm1)
+AIC(x.lm2)
+AIC(lm(x ~ TIME +I(TIME^2) +SIN[,1] +SIN[,2] +SIN[,4] +COS[,4]))
+```
+
+### 5.6.3 Harmonic model fitted to temperature series (1970--2005
+
+```{r}
+SIN <- COS <- matrix(nr = length(temp), nc = 6)
+for (i in 1:6) {
+  COS[, i] <- cos(2 * pi * i * time(temp))
+  SIN[, i] <- sin(2 * pi * i * time(temp))
+}
+TIME <- (time(temp) - mean(time(temp)))/sd(time(temp))
+mean(time(temp))
+```
+
+```{r}
+sd(time(temp))
+temp.lm1 <- lm(temp ~ TIME + I(TIME^2) +
+                 COS[,1] + SIN[,1] + COS[,2] + SIN[,2] +
+                 COS[,3] + SIN[,3] + COS[,4] + SIN[,4] +
+                 COS[,5] + SIN[,5] + COS[,6] + SIN[,6])
+coef(temp.lm1)/sqrt(diag(vcov(temp.lm1)))
+```
+
+```{r}
+temp.lm2 <- lm(temp ~ TIME + SIN[, 1] + SIN[, 2])
+coef(temp.lm2)
+AIC(temp.lm)
+AIC(temp.lm1)
+AIC(temp.lm2)
+```
+
+```{r}
+plot(time(temp), resid(temp.lm2), type = "l")
+abline(0, 0, col = "red")
+acf(resid(temp.lm2))
+pacf(resid(temp.lm2))
+```
+
+```{r}
+res.ar <- ar(resid(temp.lm2), method = "mle")
+res.ar$ar
+sd(res.ar$res[-(1:2)])
+acf(res.ar$res[-(1:2)])
+```
+
+## 5.7 Logarithmic transformations
+
+### 5.7.1 Introduction
+
+### 5.7.2 Example using the air passenger series
+
+```{r}
+data(AirPassengers)
+AP <- AirPassengers
+plot(AP)
+plot(log(AP))
+```
+
+```{r}
+SIN <- COS <- matrix(nr = length(AP), nc = 6)
+for (i in 1:6) {
+  SIN[, i] <- sin(2 * pi * i * time(AP))
+  COS[, i] <- cos(2 * pi * i * time(AP))
+}
+TIME <- (time(AP) - mean(time(AP)))/sd(time(AP))
+mean(time(AP))
+```
+```{r}
+sd(time(AP))
+```
+```{r}
+AP.lm1 <- lm(log(AP) ~ TIME + I(TIME^2) + I(TIME^3) + I(TIME^4) +
+               SIN[,1] + COS[,1] + SIN[,2] + COS[,2] + SIN[,3] + COS[,3] +
+               SIN[,4] + COS[,4] + SIN[,5] + COS[,5] + SIN[,6] + COS[,6])
+coef(AP.lm1)/sqrt(diag(vcov(AP.lm1)))
+```
+```{r}
+AP.lm2 <- lm(log(AP) ~ TIME + I(TIME^2) + SIN[,1] + COS[,1] +
+               SIN[,2] + COS[,2] + SIN[,3] + SIN[,4] + COS[,4] + SIN[,5])
+coef(AP.lm2)/sqrt(diag(vcov(AP.lm2)))
+```
+
+```{r}
+AIC(AP.lm1)
+AIC(AP.lm2)
+acf(resid(AP.lm2))
+```
+
+```{r}
+AP.gls <- gls(log(AP) ~ TIME + I(TIME^2) + SIN[,1] + COS[,1] +
+                SIN[,2] + COS[,2] + SIN[,3] + SIN[,4] + COS[,4] + SIN[,5],
+              cor = corAR1(0.6))
+coef(AP.gls)/sqrt(diag(vcov(AP.gls)))
+```
+
+```{r}
+AP.ar <- ar(resid(AP.lm2), order = 1, method = "mle")
+AP.ar$ar
+acf(AP.ar$res[-1])
+```
+
+
+
+## 5.8 Non-linear models
+
+### 5.8.1 Introduction
+
+### 5.8.2 Example of a simulated and fitted non-linear series
+```{r}
+set.seed(1)
+w <- rnorm(100, sd = 10)
+z <- rep(0, 100)
+for (t in 2:100) z[t] <- 0.7 * z[t - 1] + w[t]
+Time <- 1:100
+f <- function(x) exp(1 + 0.05 * x)
+x <- f(Time) + z
+plot(x, type = "l")
+abline(0, 0)
+```
+
+```{r}
+x.nls <- nls(x ~ exp(alp0 + alp1 * Time), start = list(alp0 = 0.1, alp1 = 0.5))
+summary(x.nls)$parameters
+```
+
+
+## 5.9 Forecasting from regression
+
+### 5.9.1 Introduction
+
+### 5.9.2 Prediction in R
+```{r}
+new.t <- time(ts(start = 1961, end = c(1970, 12), fr = 12))
+TIME <- (new.t - mean(time(AP)))/sd(time(AP))
+SIN <- COS <- matrix(nr = length(new.t), nc = 6)
+
+for (i in 1:6) {
+  COS[, i] <- cos(2 * pi * i * new.t)
+  SIN[, i] <- sin(2 * pi * i * new.t)
+}
+
+SIN <- SIN[, -6]
+new.dat <- data.frame(TIME = as.vector(TIME), SIN = SIN, COS = COS)
+AP.pred.ts <- exp(ts(predict(AP.lm2, new.dat), st = 1961, fr = 12))
+ts.plot(log(AP), log(AP.pred.ts), lty = 1:2)
+ts.plot(AP, AP.pred.ts, lty = 1:2)
+```
+
+
+## 5.10 Inverse transform and bias correction
+
+### 5.10.1 Log-normal residual errors
+```{r}
+set.seed(1)
+sigma <- 1
+w <- rnorm(1e+06, sd = sigma)
+mean(w)
+```
+```{r}
+mean(exp(w))
+exp(sigma^2/2)
+```
+
+### 5.10.2 Empirical correction factor for forecasting means
+
+### 5.10.3 Example using the air passenger data
+
+```{r}
+summary(AP.lm2)$r.sq
+```
+```{r}
+sigma <- summary(AP.lm2)$sigma
+lognorm.correction.factor <- exp((1/2) * sigma^2)
+empirical.correction.factor <- mean(exp(resid(AP.lm2)))
+lognorm.correction.factor
+empirical.correction.factor
+AP.pred.ts <- AP.pred.ts * empirical.correction.factor
+```
+
+## 5.11 Summary of R commands
+| lm      | fits a linear (regression) model                                                            |
+|---------|---------------------------------------------------------------------------------------------|
+| coef    | extracts the parameter estimates from a fitted model                                        |
+| confint | returns a (95%) confidence interval for the parameters of a fitted model                    |
+| gls     | fits a linear model using generalised least squares (allowing for autocorrelated residuals) |
+| factor  | returns variables in the form of 'factors' or indicator variables                         |
+
+
+## 5.12 Exercises

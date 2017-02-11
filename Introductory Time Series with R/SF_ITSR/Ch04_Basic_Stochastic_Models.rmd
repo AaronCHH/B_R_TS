@@ -1,0 +1,156 @@
+---
+title: "4. Basic Stochastic Models"
+output: html_notebook
+---
+
+# 4. Basic Stochastic Models
+
+## 4.1 Purpose
+
+## 4.2 White noise
+
+### 4.2.1 Introduction
+
+### 4.2.2 Definition
+
+### 4.2.3 Simulation in R
+```{r}
+set.seed(1)
+w <- rnorm(100)
+plot(w, type = "l")
+```
+```{r}
+x <- seq(-3,3, length = 1000)
+hist(rnorm(100), prob = T); points(x, dnorm(x), type = "l")
+```
+
+
+### 4.2.4 Second-order properties and the correlogram
+
+```{r}
+set.seed(2)
+acf(rnorm(100))
+```
+### 4.2.5 Fitting a white noise model
+
+## 4.3 Random walks
+
+### 4.3.1 Introduction
+
+### 4.3.2 Definition
+
+### 4.3.3 The backward shift operator
+
+### 4.3.4 Random walk: Second-order properties
+
+### 4.3.5 Derivation of second-order properties
+
+### 4.3.6 The difference operator
+
+### 4.3.7 Simulation
+```{r}
+x <- w <- rnorm(1000)
+for (t in 2:1000) x[t] <- x[t - 1] + w[t]
+plot(x, type = "l")
+```
+
+## 4.4 Fitted models and diagnostic plots
+
+### 4.4.1 Simulated random walk series
+```{r}
+acf(diff(x))
+```
+
+### 4.4.2 Exchange rate series
+```{r}
+Z.hw <- HoltWinters(Z.ts, alpha = 1, gamma = 0)
+acf(resid(Z.hw))
+```
+
+### 4.4.3 Random walk with drift
+```{r}
+www <- "Ch04/HP.txt"
+HP.dat <- read.table(www, header = T) ; attach(HP.dat)
+plot (as.ts(Price))
+DP <- diff(Price) ; plot (as.ts(DP)) ; acf (DP)
+mean(DP) + c(-2, 2) * sd(DP)/sqrt(length(DP))
+```
+
+## 4.5 Autoregressive models
+
+### 4.5.1 Definition
+
+### 4.5.2 Stationary and non-stationary AR processes
+
+### 4.5.3 Second-order properties of an AR(1) model
+
+### 4.5.4 Derivation of second-order properties for an AR(1) process
+
+### 4.5.5 Correlogram of an AR(1) process
+```{r}
+rho <- function(k, alpha) alpha^k
+# layout(1:1)
+plot(0:10, rho(0:10, 0.7), type = "b")
+plot(0:10, rho(0:10, -0.7), type = "b")
+```
+
+### 4.5.6 Partial autocorrelation
+
+### 4.5.7 Simulation
+```{r}
+set.seed(1)
+x <- w <- rnorm(100)
+for (t in 2:100) x[t] <- 0.7 * x[t - 1] + w[t]
+plot(x, type = "l")
+acf(x)
+pacf(x)
+```
+
+## 4.6 Fitted models
+
+### 4.6.1 Model fitted to simulated series
+```{r}
+x.ar <- ar(x, method = "mle")
+x.ar$order
+```
+```{r}
+x.ar$ar + c(-2, 2) * sqrt(x.ar$asy.var)
+```
+
+### 4.6.2 Exchange rate series: Fitted AR model
+```{r}
+Z.ar <- ar(Z.ts)
+mean(Z.ts)
+Z.ar$order
+Z.ar$ar
+Z.ar$ar + c(-2, 2) * sqrt(Z.ar$asy.var)
+acf(Z.ar$res[-1])
+```
+### 4.6.3 Global temperature series: Fitted AR model
+```{r}
+www = "Ch04/global.dat"
+Global = scan(www)
+Global.ts = ts(Global, st = c(1856, 1), end = c(2005, 12), fr = 12)
+```
+```{r}
+Global.ar <- ar(aggregate(Global.ts, FUN = mean), method = "mle")
+mean(aggregate(Global.ts, FUN = mean))
+Global.ar$order
+Global.ar$ar
+acf(Global.ar$res[-(1:Global.ar$order)], lag = 50)
+```
+
+
+## 4.7 Summary of R commands
+
+| set.seed | sets a seed for the random number generator enabling a simulation to be reproduced |
+|----------|------------------------------------------------------------------------------------|
+| rnorm    | simulates Gaussian white noise series                                              |
+| diff     | creates a series of first-order differences                                        |
+| ar       | gets the best fitting AR( p) model                                                 |
+| pacf     | extracts partial autocorrelations and partial correlogram                          |
+| polyroot | extracts the roots of a polynomial                                                 |
+| resid    | extracts the residuals from a fitted model                                         |
+
+## 4.8 Exercises
+

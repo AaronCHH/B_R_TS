@@ -1,0 +1,7 @@
+set.seed,sets a seed for the random number generator enabling a simulation to be reproduced
+rnorm,simulates Gaussian white noise series
+diff,creates a series of first-order differences
+ar,gets the best fitting AR( p) model
+pacf,extracts partial autocorrelations and partial correlogram
+polyroot,extracts the roots of a polynomial
+resid,extracts the residuals from a fitted model

@@ -1,0 +1,4 @@
+arima.sim,simulates data from an ARMA (or ARIMA) process
+arima,fits an ARMA (or ARIMA) model to data
+seq,generates a sequence
+expression,used to plot maths symbol
